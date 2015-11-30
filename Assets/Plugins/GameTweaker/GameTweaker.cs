@@ -14,13 +14,23 @@ using System.Reflection;
 [System.AttributeUsage(System.AttributeTargets.Field, Inherited = false, AllowMultiple = false)]
 sealed class TweakableField : System.Attribute
 {
-    readonly bool sharedAmongAllInstances;
-    public TweakableField (bool sharedAmongAllInstances = false) 
+    public enum Options
     {
-        this.sharedAmongAllInstances = sharedAmongAllInstances;
+        DEFAULT = 0,
+        SHARED = 1 << 1
+    }
+    readonly Options options;
+    public TweakableField(Options options = Options.DEFAULT)
+    {
+        this.options = options;
+    }
+    public TweakableField (bool sharedAmongAllInstances) 
+    {
+        options = Options.DEFAULT;
+        if (sharedAmongAllInstances) options |= Options.SHARED;
     }
 
-    public bool isSharedAmongAllInstances { get { return sharedAmongAllInstances; } }
+    public bool isSharedAmongAllInstances { get { return (options & Options.SHARED) == Options.SHARED; } }
 }
 
 public class GameTweaker : EditorWindow {
