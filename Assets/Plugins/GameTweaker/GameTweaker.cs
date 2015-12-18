@@ -63,6 +63,17 @@ public class GameTweaker : EditorWindow {
         window.Show();
     }
 
+    private bool AssemblyNameLookedAt(string assemblyName)
+    {
+        string[] assemblies = { "Assembly-CSharp-firstpass", "Assembly-CSharp" };
+        bool exists = false;
+        foreach (string s in assemblies)
+        {
+            exists |= s.Equals(assemblyName);
+        }
+        return exists;
+    }
+
     /// <summary>
     /// Performs a new scan for tweakable objects.
     /// </summary>
@@ -71,7 +82,7 @@ public class GameTweaker : EditorWindow {
         tweakables = new List<TweakableClass>();
         foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
         {
-            if (assembly.GetName().Name == "Assembly-CSharp-firstpass" || assembly.GetName().Name == "Assembly-CSharp")
+            if (AssemblyNameLookedAt(assembly.GetName().Name))
                 foreach (Type type in assembly.GetTypes())
                 {
                     List<FieldInfo> sharedFields = new List<FieldInfo>();
