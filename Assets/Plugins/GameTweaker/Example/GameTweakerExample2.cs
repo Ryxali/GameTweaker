@@ -17,4 +17,9 @@ public class GameTweakerExample2 : MonoBehaviour {
 	void Update () {
 	
 	}
+
+    void Reset()
+    {
+        Debug.Log("RESETY");
+    }
 }

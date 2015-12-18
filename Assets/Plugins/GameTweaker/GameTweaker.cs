@@ -196,7 +196,7 @@ public class GameTweaker : EditorWindow {
 
                         instObj.ApplyModifiedProperties();
                         UnityEngine.Object objParent;
-                        if (funkyProf != null && prefabFunky && (objParent = PrefabUtility.GetPrefabParent(obj)) != null && objParent != obj)
+                        if (GUI.changed && (objParent = PrefabUtility.GetPrefabParent(obj)) != null && objParent != obj)
                         {
                             /*var mods = PrefabUtility.GetPropertyModifications(obj);
                             PropertyModification mod = new PropertyModification();
@@ -220,12 +220,11 @@ public class GameTweaker : EditorWindow {
                             mods[0] = mod;
                             PrefabUtility.SetPropertyModifications(obj, mods);*/
                             Debug.Log("HUNKY DORY");
-                            funkyProf = null;
-                            prefabFunky = false;
                             //
                         }
                         GUI.changed = false;
                         
+
                         EditorGUI.indentLevel--;
                     }
                     
@@ -244,10 +243,17 @@ public class GameTweaker : EditorWindow {
         
     }
 
-    
+    void Reset()
+    {
+        Debug.Log("RESETTY");
+        //PrefabUtility.
+    }
 
-    static bool prefabFunky = false;
-    static string funkyProf = null;
+    void PrefabInstanceUpdated(GameObject prefabInstance)
+    {
+        Debug.Log(prefabInstance);
+    }
+    
     /// <summary>
     /// helper function to automatically handle arrays
     /// </summary>
@@ -258,46 +264,72 @@ public class GameTweaker : EditorWindow {
         if (prop.isArray)
         {
             DrawArrayProperty(prop);
-
-            
         }
         else
         {
-            funkyProf = prop.name;
             EditorGUILayout.PropertyField(prop);
-            if (!GUI.changed)
-                funkyProf = null;
-            else
-            {
-                if (prop.isInstantiatedPrefab)
-                {
-                    var preProp = new SerializedObject(PrefabUtility.GetPrefabParent(prop.serializedObject.targetObject)).FindProperty(prop.name);
-                    Debug.Log(prop.name + " ||| " + preProp.name);
-                    if (SerializedProperty.EqualContents(prop, preProp))
-                    {
-                        prop.prefabOverride = false;
-                    }
-                    else
-                    {
-                        prefabFunky = true;
-                    }
-                    
-                }
-                
-                
-            }
             if (prop.isInstantiatedPrefab)
+            {
+                var preProp = new SerializedObject(PrefabUtility.GetPrefabParent(prop.serializedObject.targetObject)).FindProperty(prop.name);
+                //Debug.Log(prop.name + " ||| " + preProp.name);
+
+                if (PropEquals(prop, preProp))
                 {
-                    var preProp = new SerializedObject(PrefabUtility.GetPrefabParent(prop.serializedObject.targetObject)).FindProperty(prop.name);
-                    Debug.Log(prop.name + " ||| " + preProp.name);
-                    if (SerializedProperty.EqualContents(prop, preProp))
-                    {
-                        prop.prefabOverride = false;
-                    }
-                    
+                    prop.prefabOverride = false;
                 }
-                
-            GUI.changed = false;
+
+            }
+        }
+        
+    }
+    
+
+    bool PropEquals(SerializedProperty a, SerializedProperty b)
+    {
+        if (a == null || b == null) return false;
+        if (!a.type.Equals(b.type)) return false;
+        switch (a.propertyType)
+        {
+            case SerializedPropertyType.AnimationCurve:
+                return a.animationCurveValue.Equals(b.animationCurveValue);
+            case SerializedPropertyType.ArraySize:
+                return a.arraySize == b.arraySize;
+            case SerializedPropertyType.Boolean:
+                return a.boolValue == b.boolValue;
+            case SerializedPropertyType.Bounds:
+                return a.boundsValue == b.boundsValue;
+            case SerializedPropertyType.Character:
+                return a.stringValue.Equals(b.stringValue);
+            case SerializedPropertyType.Color:
+                return a.colorValue.Equals(b.colorValue);
+            case SerializedPropertyType.Enum:
+                return a.enumValueIndex == b.enumValueIndex;
+            case SerializedPropertyType.Float:
+                return a.floatValue.Equals(b.floatValue);
+            case SerializedPropertyType.Generic:
+                return false;
+            case SerializedPropertyType.Gradient:
+                return false;
+            case SerializedPropertyType.Integer:
+                return a.intValue == b.intValue;
+            case SerializedPropertyType.LayerMask:
+                return a.intValue == b.intValue;
+            case SerializedPropertyType.ObjectReference:
+                return a.objectReferenceValue.GetInstanceID() == b.objectReferenceValue.GetInstanceID();
+            case SerializedPropertyType.Quaternion:
+                return a.quaternionValue.Equals(b.quaternionValue);
+            case SerializedPropertyType.Rect:
+                return a.rectValue.Equals(b.rectValue);
+            case SerializedPropertyType.String:
+                return a.stringValue.Equals(b.stringValue);
+            case SerializedPropertyType.Vector2:
+                return a.vector2Value.Equals(b.vector2Value);
+            case SerializedPropertyType.Vector3:
+                return a.vector3Value.Equals(b.vector3Value);
+            case SerializedPropertyType.Vector4:
+                return a.vector4Value.Equals(b.vector4Value);
+            default:
+                return false;
         }
     }
 
@@ -310,7 +342,10 @@ public class GameTweaker : EditorWindow {
             SerializedProperty propChild = prop.Copy();
             propChild.NextVisible(true);
             EditorGUILayout.PropertyField(propChild);
-
+            bool arrayDiff = true;
+            SerializedProperty preProp = null;
+            if (prop.isInstantiatedPrefab)
+                preProp = new SerializedObject(PrefabUtility.GetPrefabParent(prop.serializedObject.targetObject)).FindProperty(prop.name);
             for (int i = 0; i < prop.arraySize; i++)
             {
                 SerializedProperty item = prop.GetArrayElementAtIndex(i);
@@ -321,8 +356,28 @@ public class GameTweaker : EditorWindow {
                 else
                 {
                     EditorGUILayout.PropertyField(item);
+                    if (prop.isInstantiatedPrefab)
+                    {
+                        
+                        //Debug.Log(prop.name + " ||| " + preProp.name);
+
+                        if (preProp != null && preProp.arraySize == prop.arraySize && PropEquals(item, preProp.GetArrayElementAtIndex(i)))
+                        {
+                            Debug.Log("EQUQQUQ");
+                            item.prefabOverride = false;
+                            
+                        } else
+                        {
+                            arrayDiff = false;
+                        }
+
+                    }
                 }
 
+            }
+            if(arrayDiff)
+            {
+                prop.prefabOverride = false;
             }
             EditorGUI.indentLevel--;
         }
