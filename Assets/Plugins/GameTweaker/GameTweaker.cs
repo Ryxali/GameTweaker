@@ -147,8 +147,8 @@ public class GameTweaker : EditorWindow {
                     EditorGUI.indentLevel++;
                     EditorGUILayout.LabelField("Shared Settings", EditorStyles.boldLabel);
                     EditorGUI.indentLevel++;
-                    
                     SerializedObject o = new SerializedObject(c.objects[0]);
+
                     List<SerializedProperty> props = new List<SerializedProperty>();
                     foreach (FieldInfo field in c.sharedFields)
                     {
@@ -167,7 +167,6 @@ public class GameTweaker : EditorWindow {
                         
                     }
                     o.ApplyModifiedProperties();
-                    
                     EditorGUI.indentLevel--;
 
                     
@@ -198,29 +197,7 @@ public class GameTweaker : EditorWindow {
                         UnityEngine.Object objParent;
                         if (GUI.changed && (objParent = PrefabUtility.GetPrefabParent(obj)) != null && objParent != obj)
                         {
-                            /*var mods = PrefabUtility.GetPropertyModifications(obj);
-                            PropertyModification mod = new PropertyModification();
-                            var proppy = instObj.FindProperty(funkyProf);
-                            var proppy2 = new SerializedObject(PrefabUtility.GetPrefabParent(obj)).FindProperty("funkyProf");
-                            if (!SerializedProperty.EqualContents(proppy, proppy2))
-                            {
-                                PrefabUtility.RecordPrefabInstancePropertyModifications(obj);
-                                
-                            }
-                            else
-                            {
-                                proppy.prefabOverride = false;
-                                instObj.ApplyModifiedProperties();
-                            }*/
-
                             PrefabUtility.RecordPrefabInstancePropertyModifications(obj);
-                            /*
-                            PropertyModification[] mods2 = new PropertyModification[mods.Length + 1];
-                            mods.CopyTo(mods2, 1);
-                            mods[0] = mod;
-                            PrefabUtility.SetPropertyModifications(obj, mods);*/
-                            Debug.Log("HUNKY DORY");
-                            //
                         }
                         GUI.changed = false;
                         
@@ -242,17 +219,6 @@ public class GameTweaker : EditorWindow {
         }
         
     }
-
-    void Reset()
-    {
-        Debug.Log("RESETTY");
-        //PrefabUtility.
-    }
-
-    void PrefabInstanceUpdated(GameObject prefabInstance)
-    {
-        Debug.Log(prefabInstance);
-    }
     
     /// <summary>
     /// helper function to automatically handle arrays
@@ -271,8 +237,6 @@ public class GameTweaker : EditorWindow {
             if (prop.isInstantiatedPrefab)
             {
                 var preProp = new SerializedObject(PrefabUtility.GetPrefabParent(prop.serializedObject.targetObject)).FindProperty(prop.name);
-                //Debug.Log(prop.name + " ||| " + preProp.name);
-
                 if (PropEquals(prop, preProp))
                 {
                     prop.prefabOverride = false;
@@ -358,12 +322,8 @@ public class GameTweaker : EditorWindow {
                     EditorGUILayout.PropertyField(item);
                     if (prop.isInstantiatedPrefab)
                     {
-                        
-                        //Debug.Log(prop.name + " ||| " + preProp.name);
-
                         if (preProp != null && preProp.arraySize == prop.arraySize && PropEquals(item, preProp.GetArrayElementAtIndex(i)))
                         {
-                            Debug.Log("EQUQQUQ");
                             item.prefabOverride = false;
                             
                         } else
